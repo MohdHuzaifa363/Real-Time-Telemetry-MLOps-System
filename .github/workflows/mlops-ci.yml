@@ -1,4 +1,4 @@
- name: Secure Infrastructure MLOps CI-CD Engine
+name: Secure Infrastructure MLOps CI-CD Engine
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
     - name: Execute Validation Docker Build Sandbox Test
       run: |
         docker build -t telemetry-secure-mesh:test .
-        echo "✅ Infrastructure Microservice Container Built and Verified Successfully in CI Sandbox!"
+        echo "Successfully Verified CI Sandbox Build"
