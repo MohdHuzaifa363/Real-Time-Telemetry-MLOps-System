@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Secure Telemetry Suite</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans selection:bg-teal-500 selection:text-white flex flex-col min-h-screen">
+
+    <header class="bg-gray-800 p-5 shadow-md border-b border-gray-700 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold text-teal-400 font-mono flex items-center gap-2">
+                <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
+                Enterprise Multi-Variant Telemetry Mesh
+            </h1>
+            <div class="flex items-center gap-4">
+                <button onclick="triggerSecureLogDownload()" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold py-1.5 px-4 rounded-lg shadow text-xs transition-all duration-200 cursor-pointer flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download Historical Data (.CSV)
+                </button>
+                <span id="system-clock" class="text-gray-400 font-mono text-xs">Syncing Window...</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6 space-y-6 flex-grow">
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div id="status-card" class="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow transition-all duration-300">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">System Predictive Status</h3>
+                <p id="status-text" class="text-xl font-black text-green-400 mt-1">HEALTHY</p>
+            </div>
+            <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Critical Crash Probability</h3>
+                <p id="risk-text" class="text-xl font-black text-teal-300 mt-1">0.00%</p>
+            </div>
+            <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow">
+                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Network Gateway Status</h3>
+                <div id="gateway-container" class="flex items-center gap-2 mt-1">
+                    <p id="gateway-text" class="text-xl font-black text-blue-400">Connecting...</p>
+                </div>
+            </div>
+            <div class="bg-gray-800 p-3 rounded-xl border border-gray-700 shadow flex flex-col items-center justify-center">
+                <h3 class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Active Server Load</h3>
+                <div class="w-full h-14 relative overflow-hidden">
+                    <canvas id="gaugeMeterCanvas"></canvas>
+                </div>
+                <div id="gauge-readout" class="text-xs font-bold text-teal-400 -mt-1">0% Load</div>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 shadow">
+            <h2 class="text-sm font-bold text-teal-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                System Performance Metrics
+            </h2>
+            <div class="relative h-64 w-full">
+                <canvas id="coreTelemetryGraph"></canvas>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-800 pt-6">
+            <h2 class="text-md font-bold text-gray-300 mb-4 uppercase tracking-wider flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Sub-System Infrastructure Matrix
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow">
+                    <h3 class="text-xs font-bold text-purple-400 mb-2 uppercase flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z"></path></svg>
+                        Memory Allocation Status
+                    </h3>
+                    <div class="h-40"><canvas id="ramGraphCanvas"></canvas></div>
+                </div>
+                
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow">
+                    <h3 class="text-xs font-bold text-amber-400 mb-2 uppercase flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s8-1.79 8-4"></path></svg>
+                        Storage Volume Capacity
+                    </h3>
+                    <div class="h-40"><canvas id="diskGraphCanvas"></canvas></div>
+                </div>
+                
+                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow">
+                    <h3 class="text-xs font-bold text-blue-400 mb-2 uppercase flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        Network I/O Throughput
+                    </h3>
+                    <div class="h-40"><canvas id="netGraphCanvas"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 border-t border-gray-700 mt-auto py-4 px-6">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-xs text-gray-400 gap-3">
+            <div class="flex items-center gap-2">
+                <span class="bg-teal-950 text-teal-400 px-2 py-0.5 rounded-full font-mono text-[10px] border border-teal-800">v1.0.2 (Stable)</span>
+                <span>© 2026 Telemetry Mesh. All rights reserved.</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="https://github.com/MohdHuzaifa363/Real-Time-Telemetry-MLOps-System.git" target="_blank" class="hover:text-teal-400 transition-colors duration-150 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.008.069-.008 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                    GitHub Repository
+                </a>
+                <a href="mailto:mohdhuzaifa625@gmail.com" class="hover:text-teal-400 transition-colors duration-150 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 002-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    mohdhuzaifa625@gmail.com
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let dataLogMatrix = [["Timestamp", "CPU_Percent", "RAM_Percent", "Disk_Percent", "Network_MBs", "Latency_ms", "Model_Risk_Score"]];
+
+        setInterval(() => { document.getElementById('system-clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+
+        const instantiateSubChart = (canvasId, datasetLabel, lineHexColor) => {
+            return new Chart(document.getElementById(canvasId).getContext('2d'), {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: datasetLabel, data: [], borderColor: lineHexColor, backgroundColor: lineHexColor.replace(')', ', 0.05)'), tension: 0.15, fill: true }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#374151' }, ticks: { color: '#9ca3af', font: { size: 9 } } }, x: { display: false } } }
+            });
+        };
+
+        const telemetryChartInstance = new Chart(document.getElementById('coreTelemetryGraph').getContext('2d'), {
+            type: 'line',
+            data: { labels: [], datasets: [
+                { label: 'CPU Usage (%)', data: [], borderColor: 'rgb(45, 212, 191)', tension: 0.2, yAxisID: 'y' },
+                { label: 'Latency (ms)', data: [], borderColor: 'rgb(239, 68, 68)', tension: 0.2, yAxisID: 'y1' }
+            ]},
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { position: 'left', min: 0, max: 100 }, y1: { position: 'right', grid: { drawOnChartArea: false } } } }
+        });
+
+        const ramChartNode  = instantiateSubChart('ramGraphCanvas', 'RAM %', 'rgb(192, 132, 252)');
+        const diskChartNode = instantiateSubChart('diskGraphCanvas', 'Disk %', 'rgb(251, 191, 36)');
+        const netChartNode  = instantiateSubChart('netGraphCanvas', 'Net MB/s', 'rgb(96, 165, 250)');
+
+        const gaugeChartNode = new Chart(document.getElementById('gaugeMeterCanvas').getContext('2d'), {
+            type: 'doughnut',
+            data: { datasets: [{ data: [0, 100], backgroundColor: ['#2dd4bf', '#374151'], borderWidth: 0 }] },
+            options: { rotation: -90, circumference: 180, cutout: '80%', responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: false } } }
+        });
+
+        async function executionPollingCycle() {
+            const gatewayContainer = document.getElementById('gateway-container');
+            try {
+                const kernelResponse = await fetch('http://127.0.0.1:8000/api/v1/live-kernel');
+                if (!kernelResponse.ok) throw new Error();
+                const kernelData = await kernelResponse.json();
+
+                const inferenceResponse = await fetch('http://127.0.0.1:8000/api/v1/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        CPU_Usage: kernelData.CPU_Usage,
+                        RAM_Usage: kernelData.RAM_Usage,
+                        Response_Time: kernelData.Response_Time
+                    })
+                });
+                if (!inferenceResponse.ok) throw new Error();
+                const inferenceData = await inferenceResponse.json();
+
+                gatewayContainer.innerHTML = `<p id="gateway-text" class="text-xl font-black text-blue-400">FastAPI Node Server V1</p>`;
+                document.getElementById('risk-text').innerText = inferenceData.crash_risk_percentage + "%";
+                
+                const statusText = document.getElementById('status-text');
+                const statusCard = document.getElementById('status-card');
+                statusText.innerText = inferenceData.risk_status;
+
+                if (inferenceData.prediction === 1) {
+                    statusText.className = "text-xl font-black text-red-500 mt-1 animate-pulse";
+                    statusCard.className = "bg-red-950/20 p-5 rounded-xl border border-red-600 shadow shadow-red-500/20 transition-all duration-300";
+                } else {
+                    statusText.className = "text-xl font-black text-green-400 mt-1";
+                    statusCard.className = "bg-gray-800 p-5 rounded-xl border border-gray-700 shadow transition-all duration-300";
+                }
+
+                const timestampToken = new Date().toLocaleTimeString();
+                dataLogMatrix.push([timestampToken, kernelData.CPU_Usage, kernelData.RAM_Usage, kernelData.Disk_Usage, kernelData.Network_Traffic, kernelData.Response_Time, inferenceData.crash_risk_percentage]);
+
+                gaugeChartNode.data.datasets[0].data = [kernelData.CPU_Usage, 100 - kernelData.CPU_Usage];
+                gaugeChartNode.update();
+                document.getElementById('gauge-readout').innerText = `${Math.round(kernelData.CPU_Usage)}% Load`;
+
+                const pipelineGraphUpdate = (chartObject, rawValue, isDualScaled = false, layerIndex = 0) => {
+                    chartObject.data.labels.push(timestampToken);
+                    if(!isDualScaled) {
+                        chartObject.data.datasets[0].data.push(rawValue);
+                        if (chartObject.data.labels.length > 8) { chartObject.data.labels.shift(); chartObject.data.datasets[0].data.shift(); }
+                    } else {
+                        chartObject.data.datasets[layerIndex].data.push(rawValue);
+                        if (chartObject.data.labels.length > 8) { chartObject.data.labels.shift(); chartObject.data.datasets[layerIndex].data.shift(); }
+                    }
+                    chartObject.update();
+                };
+
+                pipelineGraphUpdate(telemetryChartInstance, kernelData.CPU_Usage, true, 0);
+                pipelineGraphUpdate(telemetryChartInstance, kernelData.Response_Time, true, 1);
+                pipelineGraphUpdate(ramChartNode, kernelData.RAM_Usage);
+                pipelineGraphUpdate(diskChartNode, kernelData.Disk_Usage);
+                pipelineGraphUpdate(netChartNode, kernelData.Network_Traffic);
+
+            } catch (exception) {
+                gatewayContainer.innerHTML = `
+                    <div class="flex items-center gap-1.5 mt-1 text-red-500 font-black text-xl">
+                        <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                        OFFLINE
+                    </div>`;
+                document.getElementById('status-text').innerText = "GATEWAY ERROR";
+                document.getElementById('status-text').className = "text-xl font-black text-amber-500 mt-1";
+            }
+        }
+
+        function triggerSecureLogDownload() {
+            let encodedCsvStream = "data:text/csv;charset=utf-8," + dataLogMatrix.map(rowArray => rowArray.join(",")).join("\n");
+            const structuralLinkElement = document.createElement("a");
+            structuralLinkElement.setAttribute("href", encodeURI(encodedCsvStream));
+            structuralLinkElement.setAttribute("download", `Telemetry_SecAudit_Report_${new Date().toLocaleDateString()}.csv`);
+            document.body.appendChild(structuralLinkElement);
+            structuralLinkElement.click();
+            document.body.removeChild(structuralLinkElement);
+        }
+
+        setInterval(executionPollingCycle, 2500);
+    </script>
+</body>
+</html>
