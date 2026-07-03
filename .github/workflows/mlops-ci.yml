@@ -11,9 +11,9 @@ on:
 # Defining virtual isolated execution stages
 jobs:
   continuous-integration-audit:
-    # Operating over the latest enterprise Ubuntu cloud runner matrix
     runs-on: ubuntu-latest
-
+    
+# Operating over the latest enterprise Ubuntu cloud runner matrix
     steps:
     # Step 1: Securely checkout the application source repository matrix
     - name: Ingest Source Code Matrix Layer
